@@ -12,7 +12,6 @@ public class FireBirdDAO {
 private static Connection conn;
 	
 	public FireBirdDAO(){
-		
 		try {
 			conn = FireBirdConnector.getInstance().getConnection();
 		} catch (Exception e) {

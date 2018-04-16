@@ -4,8 +4,7 @@ public class RunApp {
 
 	public static void main(String[] args) {
 		FireBirdDAO dao = new FireBirdDAO();
-		dao.printCodes();
-		
+		dao.printCodes();		
 	}
 
 }

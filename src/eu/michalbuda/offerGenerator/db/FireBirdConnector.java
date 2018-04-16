@@ -21,24 +21,6 @@ public class FireBirdConnector {
 	
 	private static Connection conn;
 	
-	private FireBirdConnector(){
-		
-	}
-	
-	public static FireBirdConnector getInstance() throws Exception{
-		if(conn == null) {
-			connect();
-		}
-		return instance;
-	}
-	
-	public Connection getConnection() throws Exception{
-		if(conn == null) {
-			connect();
-		}
-		return conn;
-	}
-	
 	private static void connect() throws Exception{
 		if(conn != null)
 			return;
@@ -73,6 +55,16 @@ public class FireBirdConnector {
 		
 	}
 	
+	public static FireBirdConnector getInstance() throws Exception{
+		if(conn == null) {
+			connect();
+		}
+		return instance;
+	}
+	
+	private FireBirdConnector(){
+	}
+	
 	public void disconnect(){
 		if(conn != null){
 			try {
@@ -80,9 +72,15 @@ public class FireBirdConnector {
 			} catch (SQLException e) {
 				System.out.println("Can't close connection to FDB");
 			}
-		}
-		
+		}		
 		conn = null;
+	}
+	
+	public Connection getConnection() throws Exception{
+		if(conn == null) {
+			connect();
+		}
+		return conn;
 	}
 	
 
