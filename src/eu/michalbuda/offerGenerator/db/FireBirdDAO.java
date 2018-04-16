@@ -50,7 +50,6 @@ private static Connection conn;
 				pst.close();
 				rs.close();
 			} catch (SQLException e) {
-				// TODO Auto-generated catch block
 				System.out.println(e);
 				e.printStackTrace();
 			}
