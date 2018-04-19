@@ -5,6 +5,7 @@ public class Offer {
 	private String productCode;
 	private String oldHtmlText;
 	private String text;
+	private String title;
 	
 	public Offer(int offerId) {
 		super();
@@ -46,6 +47,15 @@ public class Offer {
 	public void setText(String text) {
 		this.text = text;
 	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
+	
 	
 	
 }

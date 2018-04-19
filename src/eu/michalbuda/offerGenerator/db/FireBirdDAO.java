@@ -60,7 +60,7 @@ private static Connection conn;
 	public ArrayList<Offer> getOffersFromGroup(int groupId){
 		ArrayList<Offer> list = new ArrayList<>();
 		
-		String sql = "SELECT id, kod FROM aukcje WHERE id_grupa = ?";
+		String sql = "SELECT id, kod, tytul FROM aukcje WHERE id_grupa = ?";
 		PreparedStatement pst = null;
 		ResultSet rs = null;
 		try {
@@ -70,6 +70,7 @@ private static Connection conn;
 			while(rs.next()) {
 				Offer offer = new Offer(rs.getInt("id"));
 				offer.setProductCode(rs.getString("kod"));
+				offer.setTitle(rs.getString("tytul"));
 				list.add(offer);
 			}
 		} catch (SQLException e) {
@@ -105,6 +106,33 @@ private static Connection conn;
 			}
 		}
 		return "null";
+	}
+	
+	public Offer getOldProductText(Offer offer) {
+		String sql = "Select opis from AUK_OPISY where id_aukcji = ?";
+		PreparedStatement pst = null;
+		ResultSet rs = null;
+		try {
+			pst = conn.prepareStatement(sql);
+			pst.setInt(1, offer.getOfferId());
+			rs = pst.executeQuery();
+			if (rs.next()) {
+				offer.setOldHtmlText(rs.getString("opis"));
+				return offer;
+			}
+		} catch (SQLException e) {
+			System.out.println(e);
+			e.printStackTrace();
+		} finally {
+			try {
+				pst.close();
+				rs.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return offer;
 	}
 	
 	public String getProductText(int idAukcji) {
@@ -160,13 +188,13 @@ private static Connection conn;
 		return offer;
 	}
 	
-	private void insertProductText(Offer offer){
-		String sql = "Insert into auk_opisy (id_aukcji,nowy_opis) Values (?,?,?)";
+	public void insertProductText(Offer offer){
+		String sql = "UPDATE auk_opisy SET nowy_opis = ? WHERE id_aukcji = ?";
 		PreparedStatement pst = null;
 		try{
 			pst = conn.prepareStatement(sql);
-			pst.setInt(1, offer.getOfferId());
-			pst.setBytes(2, offer.getText().getBytes());
+			pst.setInt(2, offer.getOfferId());
+			pst.setBytes(1, offer.getText().getBytes());
 			pst.executeUpdate();
 		} catch (Exception e) {
 			System.out.println(e);

@@ -4,5 +4,6 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="C:/Users/scientits/Downloads/!java/jars/Jaybird-2.2.11-JDK_1.8/jaybird-full-2.2.11.jar"/>
 	<classpathentry kind="lib" path="C:/Users/scientits/Downloads/!java/jars/htmlunit-2.26-OSGi.jar"/>
+	<classpathentry kind="lib" path="C:/Users/scientits/Downloads/!java/jars/jsoup-1.11.3.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
