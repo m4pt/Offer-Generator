@@ -8,15 +8,17 @@ public class OfferTextTemplate {
 	private final String templatePointList = "&lt;OL&gt;[ELEMENTS]&lt;/OL&gt;";
 	private final String templateListElement = "&lt;LI&gt;[LI]&lt;/LI&gt;";
 	private final String templateParagraph = "&lt;P&gt;[P]&lt;/P&gt;";
-	private final String templateH1 = "&lt;H1&gt;[H1]&lt;/H1&gt;";
+	private final String templateH1 = "&lt;H1&gt; [H1]&lt;/H1&gt;";
 	private final String templateH2 = "&lt;H1&gt;[H2]&lt;/H1&gt;";
 	private final String templateBold = "&lt;B&gt;[B]&lt;/B&gt;";
 	
-	private String title; //first Section title
-	private String secondSectionTitle;
-	private String thirdSectionTitle;
+	private final boolean allowAdditionalText = false;
 	
-	private ArrayList<String> additionalTextLines;
+	private String title = ""; //first Section title
+	private String secondSectionTitle = "";
+	private String thirdSectionTitle = " ";
+	
+	private ArrayList<String> additionalTextLines = new ArrayList<String>();
 	
 	private String manufacturer = "";
 	private String productCode = "";
@@ -72,7 +74,9 @@ public class OfferTextTemplate {
 		if(this.attribs.size() > 0){
 			String elements = "";
 			for(ProductAttribute attrib : this.attribs){
-				elements = elements + templateListElement.replace("[LI]", templateBold.replace("[B]",attrib.getAttribName()) + " " + attrib.getAttribValue() + " " + attrib.getAttribValue2());
+				elements = elements + templateListElement.replace("[LI]", templateBold.replace("[B]",attrib.getAttribName()) 
+						+ " " + attrib.getAttribValue() 
+						+ " " + attrib.getAttribValue2());
 				
 			}
 			first = first + templateList.replace("[ELEMENTS]", elements);
@@ -80,12 +84,14 @@ public class OfferTextTemplate {
 		
 		// ---------------------------------------------------- SECOND SECTION ---------------------------------------------------- 
 		String second = templateH2.replace("[H2]", secondSectionTitle);
+		
 		if(this.vehicles.size() > 0){
 			for(Vehicle v : this.vehicles){
 				second = second + templateParagraph.replace("[P]", v.getMarka() + " " + templateBold.replace("[B]",v.getModel()) + "  " + v.getCcm() + "ccm  " + templateBold.replace("[B]",v.getYears()) + "  " + v.getEngineCode().replace(" ", "").replace(",", " "));
 				
 			}
 		}
+		
 		if(this.vehicleStrings.size()>0) {
 			for(String v : this.vehicleStrings) {
 				second = second + templateParagraph.replace("[P]", v);
@@ -94,6 +100,7 @@ public class OfferTextTemplate {
 		
 		// ---------------------------------------------------- THIRD SECTION ---------------------------------------------------- 
 		String third = templateH2.replace("[H2]", thirdSectionTitle);
+		
 		if(this.refs.size()>0){
 			for(CrossReference cr : this.refs){
 				third = third + templateParagraph.replace("[P]", cr.getManufacturer() + " " + templateBold.replace("[B]",cr.getProduct()));
@@ -101,13 +108,14 @@ public class OfferTextTemplate {
 			
 		}
 		
-		//additional text
-		if(additionalTextLines.size()>0) {
-			for(String add : this.additionalTextLines) {
-				third = third + templateParagraph.replace("[P]", add);
-			}
+		if (allowAdditionalText) {
+			//additional text
+			if (additionalTextLines.size() > 0) {
+				for (String add : this.additionalTextLines) {
+					third = third + templateParagraph.replace("[P]", add);
+				}
+			} 
 		}
-		
 		// ---------------------------------------------- PUT SECTIONS IN A TEMPLATE ----------------------------------------------
 		String opis = template.replace("[FIRST]", first);
 		opis = opis.replace("[SECOND]", second);
@@ -210,6 +218,14 @@ public class OfferTextTemplate {
 	public void addVehicleString(String newLine) {
 		this.vehicleStrings .add(newLine);
 		
+	}
+
+	public ArrayList<String> getVehicleStrings() {
+		return vehicleStrings;
+	}
+
+	public void setVehicleStrings(ArrayList<String> vehicleStrings) {
+		this.vehicleStrings = vehicleStrings;
 	}
 	
 	

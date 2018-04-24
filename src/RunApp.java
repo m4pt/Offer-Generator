@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Scanner;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -12,22 +13,32 @@ import eu.michalbuda.offerGenerator.model.ProductAttribute;
 
 public class RunApp {
 
-	private final static String secondSectionTitle = "ZASTOSOWANIE"; 
+	private final static String secondSectionTitle = "ZASTOSOWANIE:"; 
 	private final String thirdSectionTitle = "";
+	private final static FireBirdDAO dao = new FireBirdDAO();
+	
+	private final static int groupId = 34;
 	
 	public static void main(String[] args) {
 		
-		FireBirdDAO dao = new FireBirdDAO();
+		startConvertFirstPhase();
 		
-		for(Offer offer : dao.getOffersFromGroup(34)) {
+	}
+
+	
+	public static void startConvertFirstPhase() {
+		
+		for(Offer offer : dao.getOffersFromGroup(groupId)) {
 			offer = dao.getProductText(offer);
 			offer = dao.getOldProductText(offer);
 			
 			if(offer.getText().isEmpty()) {
 
+											
 				OfferTextTemplate template = new OfferTextTemplate();
 				template.setSecondSectionTitle(secondSectionTitle);
-				template.setTitle(offer.getTitle());
+				template.setTitle(offer.getTitle().replaceAll("&(?!amp;)", "&amp;"));
+				template.setProductCode(offer.getProductCode());
 				
 				String n = br2nl(offer.getOldHtmlText()).toUpperCase();
 				
@@ -35,10 +46,12 @@ public class RunApp {
 			    
 			    while (sc.hasNextLine()) {
 			        String newLine = sc.nextLine().trim();
+			        newLine = newLine.replaceAll("&(?!amp;)", "&amp;");
+			        
 			        if(newLine.length()>2) {
-			        	System.out.println(newLine);
+			        	//System.out.println(newLine);
 			        	
-			        	if(newLine.contains(": ")) {
+			        	if(newLine.contains(":  ")) {
 			        		//attrib
 			        		template.addAttrib(textToAttrib(newLine));
 			        		
@@ -57,7 +70,14 @@ public class RunApp {
 			    offer.setText(template.toString());
 			    
 			    //save new descripton to db
-			    dao.insertProductText(offer);
+			    //if there is no roczniki mark (vehicles) in description - we need use other search template - do not save
+			    if(!template.getVehicleStrings().isEmpty()) {
+			    	dao.setProductText(offer);
+			    	System.out.println(offer.getOfferId() + "  kod: " + offer.getProductCode() + "  done.");
+			    } else {
+			    	System.out.println("kod: " + offer.getProductCode() + " not done.");
+			    }
+			    	
 			    
 			} else {
 				System.out.println("Offer with new text  -  offer id: " + offer.getOfferId() + "  product Code: " + offer.getProductCode());
@@ -65,7 +85,6 @@ public class RunApp {
 			
 		}
 	}
-	
 	public static ProductAttribute textToAttrib(String string) {
 		ProductAttribute attrib = new ProductAttribute();
 		String[] arr = string.split(":");

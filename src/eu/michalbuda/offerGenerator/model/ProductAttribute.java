@@ -2,8 +2,8 @@ package eu.michalbuda.offerGenerator.model;
 
 public class ProductAttribute {
 	private String attribName;
-	private String attribValue;
-	private String attribValue2;
+	private String attribValue = "";
+	private String attribValue2 = "";
 	
 	public ProductAttribute() {
 		super();

@@ -1,5 +1,6 @@
 package eu.michalbuda.offerGenerator.db;
 
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -7,6 +8,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
+
+import org.apache.commons.codec.Charsets;
 
 import eu.michalbuda.offerGenerator.model.Offer;
 
@@ -188,13 +191,13 @@ private static Connection conn;
 		return offer;
 	}
 	
-	public void insertProductText(Offer offer){
+	public void setProductText(Offer offer){
 		String sql = "UPDATE auk_opisy SET nowy_opis = ? WHERE id_aukcji = ?";
 		PreparedStatement pst = null;
 		try{
 			pst = conn.prepareStatement(sql);
 			pst.setInt(2, offer.getOfferId());
-			pst.setBytes(1, offer.getText().getBytes());
+			pst.setBytes(1, offer.getText().getBytes("Cp1250"));
 			pst.executeUpdate();
 		} catch (Exception e) {
 			System.out.println(e);
@@ -206,5 +209,56 @@ private static Connection conn;
 				e.printStackTrace();
 			}
 		}
+		
+		setNewDescriptionMarker(1, offer);
+	}
+	
+	public void setNewDescriptionMarker(int marker, Offer offer) {
+		String sql = "UPDATE aukcje SET czy_nowy_opis = ? WHERE id_aukcji = ?";
+		PreparedStatement pst = null;
+		try{
+			pst = conn.prepareStatement(sql);
+			pst.setInt(1, marker);
+			pst.setInt(1, offer.getOfferId());
+			pst.executeUpdate();
+		} catch (Exception e) {
+			System.out.println(e);
+		} finally{
+			try {
+				pst.close();
+			} catch (SQLException e) {
+				System.out.println(e);
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public ArrayList<Offer> getOffersWithNewTexts() {
+		ArrayList<Offer> list = new ArrayList<Offer>();
+		
+		String sql = "SELECT id_aukcji,nowy_opis from auk_opisy where bit_length(nowy_opis) > 000";
+		PreparedStatement pst = null;
+		ResultSet rs = null;
+		try{
+			pst = conn.prepareStatement(sql);
+			rs = pst.executeQuery();
+			while(rs.next()) {
+				Offer offer = new Offer();
+				offer.setOfferId(rs.getInt("id_aukcji"));
+				offer.setText(rs.getString("nowy_opis"));
+				list.add(offer);
+				
+			}
+		} catch (Exception e) {
+			System.out.println(e);
+		} finally{
+			try {
+				pst.close();
+			} catch (SQLException e) {
+				System.out.println(e);
+				e.printStackTrace();
+			}
+		}
+		return list;
 	}
 }
