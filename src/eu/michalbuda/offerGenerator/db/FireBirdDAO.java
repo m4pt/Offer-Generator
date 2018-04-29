@@ -85,6 +85,31 @@ private static Connection conn;
 		return list;
 	}
 	
+	public ArrayList<Offer> getOffersFromGroupWithoutNewText(int groupId){
+		ArrayList<Offer> list = new ArrayList<>();
+		
+		String sql = "SELECT id, kod, tytul FROM aukcje WHERE id_grupa = ? AND id IN (SELECT id_aukcji from auk_opisy where bit_length(nowy_opis) < 50)";
+		PreparedStatement pst = null;
+		ResultSet rs = null;
+		try {
+			pst = conn.prepareStatement(sql);
+			pst.setInt(1, groupId);
+			rs = pst.executeQuery();
+			while(rs.next()) {
+				Offer offer = new Offer(rs.getInt("id"));
+				offer.setProductCode(rs.getString("kod"));
+				offer.setTitle(rs.getString("tytul"));
+				list.add(offer);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			System.out.println(e);
+			e.printStackTrace();
+		}
+		
+		return list;
+	}
+	
 	public String getOldProductText(int idAukcji) {
 		String sql = "Select opis from AUK_OPISY where id_aukcji = ?";
 		PreparedStatement pst = null;
@@ -214,12 +239,12 @@ private static Connection conn;
 	}
 	
 	public void setNewDescriptionMarker(int marker, Offer offer) {
-		String sql = "UPDATE aukcje SET czy_nowy_opis = ? WHERE id_aukcji = ?";
+		String sql = "UPDATE aukcje SET czy_nowy_opis = ? WHERE id = ?";
 		PreparedStatement pst = null;
 		try{
 			pst = conn.prepareStatement(sql);
 			pst.setInt(1, marker);
-			pst.setInt(1, offer.getOfferId());
+			pst.setInt(2, offer.getOfferId());
 			pst.executeUpdate();
 		} catch (Exception e) {
 			System.out.println(e);

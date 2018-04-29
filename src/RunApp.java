@@ -1,5 +1,5 @@
-import java.util.ArrayList;
 import java.util.Scanner;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Entities.EscapeMode;
@@ -19,12 +19,105 @@ public class RunApp {
 	
 	private final static int groupId = 34;
 	
+	private final static String[] blockedString = {"VAUXHALL"};
+	
 	public static void main(String[] args) {
 		
-		startConvertFirstPhase();
-		
+		startConvertWithRegex();
 	}
+	
+	public static boolean vehicleLine(String line) {
+		String[] regex = {"\"(\\\\d\\\\d\\\\d\\\\d\\\\s(.*){0,300})", "vehicleLineTag"};
+		for (int i = 0; i < regex.length; i++) {
+			if(line.length() >= regex[i].length()) {
+				//System.out.println();
+				//System.out.print("searching for vehicle string in : " + line);
+				if(line.matches(regex[i]) || line.contains(regex[i])){
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	public static boolean banned(String line) {
+		for (int i = 0; i < blockedString.length; i++) {
+			if(line.contains(blockedString[i])) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static void startConvertWithRegex() {
+		
+		for(Offer offer : dao.getOffersFromGroupWithoutNewText(groupId)) {
+			offer = dao.getProductText(offer);
+			offer = dao.getOldProductText(offer);
+			
+			if(offer.getText().isEmpty()) {
 
+											
+				OfferTextTemplate template = new OfferTextTemplate();
+				template.setSecondSectionTitle(secondSectionTitle);
+				template.setTitle(offer.getTitle().replaceAll("&(?!amp;)", "&amp;"));
+				template.setProductCode(offer.getProductCode());
+				
+				String n = br2nl(offer.getOldHtmlText());
+			    Scanner sc = new Scanner(n);
+			    
+			    while (sc.hasNextLine()) {
+			        String newLine = sc.nextLine().trim();
+			        newLine = newLine.replaceAll("&(?!amp;)", "&amp;");
+			        
+			        if(newLine.length()>2) {
+			        	//System.out.println(newLine);
+			        	
+			        	if(newLine.contains(": ")) {
+			        		//attrib
+			        		template.addAttrib(textToAttrib(newLine));
+			        		
+			        	} else if(vehicleLine(newLine)) {
+			        		//vehicle
+			        		newLine = newLine.replaceAll("vehicleLineTag", "");
+			        		newLine = newLine.replaceAll("&amp;gt;", ">");
+			        		
+			        		if(newLine.length()>2) {
+			        			if(!banned(newLine)) {
+			        				System.out.println(newLine);
+			        				template.addVehicleString(newLine);
+			        			}
+
+			        		}
+
+			        		
+			        	} else {
+			        		//additional text
+			        		template.addAdditionalText(newLine);
+			        	}
+			        	
+			        }
+			        
+			    }
+			    offer.setText(template.toString());
+			    
+			    //save new descripton to db
+			    //if there is no roczniki mark (vehicles) in description - we need use other search template - do not save
+			    if(!template.getVehicleStrings().isEmpty()) {
+			    	dao.setProductText(offer);
+			    	System.out.println(offer.getOfferId() + "  kod: " + offer.getProductCode() + "  done.");
+			    } else {
+			    	System.out.println("kod: " + offer.getProductCode() + " not done.");
+			    }
+			    	
+			    
+			} else {
+				System.out.println("Offer with new text  -  offer id: " + offer.getOfferId() + "  product Code: " + offer.getProductCode());
+			}
+			
+		}
+	}
+	
 	
 	public static void startConvertFirstPhase() {
 		
@@ -40,7 +133,7 @@ public class RunApp {
 				template.setTitle(offer.getTitle().replaceAll("&(?!amp;)", "&amp;"));
 				template.setProductCode(offer.getProductCode());
 				
-				String n = br2nl(offer.getOldHtmlText()).toUpperCase();
+				String n = br2nl(offer.getOldHtmlText());
 				
 			    Scanner sc = new Scanner(n);
 			    
@@ -85,6 +178,7 @@ public class RunApp {
 			
 		}
 	}
+	
 	public static ProductAttribute textToAttrib(String string) {
 		ProductAttribute attrib = new ProductAttribute();
 		String[] arr = string.split(":");
@@ -104,6 +198,11 @@ public class RunApp {
 	public static String br2nl(String html) {
 	    if(html==null)
 	        return html;
+	    
+	    html = html.toUpperCase().replaceAll("<TR>", System.getProperty("line.separator"));
+	    html = html.replaceAll("<TABLE CLASS=\"ZASTOSOWANIE\">", "vehicleLineTag");
+	    html = html.replaceAll("</TD>", "  ");
+	    
 	    Document document = Jsoup.parse(html);
 	    document.outputSettings(new Document.OutputSettings().prettyPrint(false));//makes html() preserve linebreaks and spacing
 	    document.select("br").append("\\n");
